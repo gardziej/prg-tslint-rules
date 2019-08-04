@@ -11,11 +11,11 @@
 
 import { tsquery } from '@phenomnomnominal/tsquery';
 import { Replacement, RuleFailure, Rules, IOptions } from 'tslint';
-import { SourceFile, Program, TypeChecker } from 'typescript';
+import { SourceFile, Program, TypeChecker, Type } from 'typescript';
 import { couldBeType } from 'tsutils-etc';
 
-const FDESCRIBE_FIT_QUERY = 'VariableDeclaration > Identifier';
-const FAILURE_MESSAGE = (filter: string) => `Use "${filter}" suffix for stream variable name`;
+const FDESCRIBE_FIT_QUERY: string = 'VariableDeclaration > Identifier';
+const FAILURE_MESSAGE: (_: string) => string = (filter: string): string => `Use "${filter}" suffix for stream variable name`;
 
 const streamTypes: string[] = ['Observable', 'Subject', 'BehaviorSubject', 'ReplaySubject'];
 
@@ -28,7 +28,7 @@ export class Rule extends Rules.TypedRule {
     this.ruleArguments = this.getRuleArguments();
   }
 
-  public applyWithProgram(sourceFile: SourceFile, program: Program): Array<RuleFailure> {
+  public applyWithProgram(sourceFile: SourceFile, program: Program): RuleFailure[] {
     if (this.checkForFileFilter(sourceFile)) {
       return [];
     }
@@ -37,7 +37,7 @@ export class Rule extends Rules.TypedRule {
 
     return tsquery(sourceFile, FDESCRIBE_FIT_QUERY)
       .filter((result: any) => {
-        const type = typeChecker.getTypeAtLocation(result);
+        const type: Type = typeChecker.getTypeAtLocation(result);
         return (result.escapedText.slice(-1) !== this.ruleArguments.suffix &&
           streamTypes.some((streamType: string) => couldBeType(type, streamType)));
       })

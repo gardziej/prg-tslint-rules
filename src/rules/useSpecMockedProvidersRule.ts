@@ -13,11 +13,12 @@
 
 import { tsquery } from '@phenomnomnominal/tsquery';
 import { RuleFailure, Rules, IOptions } from 'tslint';
-import { SourceFile, isIdentifier, isCallExpression } from 'typescript';
+import { SourceFile, isIdentifier, isCallExpression, Node } from 'typescript';
 
 // tslint:disable-next-line:max-line-length
-const TESTING_MODULE_PROVIDERS_QUERY = `CallExpression[expression.name.escapedText="configureTestingModule"] PropertyAssignment > Identifier[name="providers"]  ~ ArrayLiteralExpression > Identifier`;
-const FAILURE_MESSAGE = (filter: string) => `Don't use "${filter}" in TestBed Testing Module providers, use mock instead.`;
+const TESTING_MODULE_PROVIDERS_QUERY: string = `CallExpression[expression.name.escapedText="configureTestingModule"] PropertyAssignment > Identifier[name="providers"]  ~ ArrayLiteralExpression > Identifier`;
+const FAILURE_MESSAGE: (_: string) => string 
+  = (filter: string): string => `Don't use "${filter}" in TestBed Testing Module providers, use mock instead.`;
 
 export class Rule extends Rules.AbstractRule {
 
@@ -28,7 +29,7 @@ export class Rule extends Rules.AbstractRule {
     this.ruleArguments = this.getRuleArguments();
   }
 
-  public apply(sourceFile: SourceFile): Array<RuleFailure> {
+  public apply(sourceFile: SourceFile): RuleFailure[] {
     if (this.checkForFileFilter(sourceFile)) {
       return [];
     }
@@ -45,21 +46,21 @@ export class Rule extends Rules.AbstractRule {
     return ruleArguments;
   }
 
-  public elementAllowed(element): boolean {
+  public elementAllowed(element: Node): boolean {
     const allAllowed: string[] = [...this.ruleArguments.allowed || []];
     return allAllowed.includes(this.getElementName(element));
   }
 
-  public getElementName(element) {
+  public getElementName(element: Node): string {
     if (isIdentifier(element)) {
-      return element.escapedText;
+      return element.escapedText as string;
     }
     else if (isCallExpression(element)) {
-      return (element.expression as any).expression.escapedText;
+      return (element.expression as any).expression.escapedText as string;
     }
   }
 
-  public generateRuleFailures(sourceFile: SourceFile) {
+  public generateRuleFailures(sourceFile: SourceFile): RuleFailure[] {
     return tsquery(sourceFile, TESTING_MODULE_PROVIDERS_QUERY)
       .filter((result: any) => result.escapedText && result.escapedText !== this.fileToClassName(sourceFile.fileName))
       .filter((result: any) => !this.elementAllowed(result)
@@ -76,7 +77,7 @@ export class Rule extends Rules.AbstractRule {
   }
 
   public fileToClassName(fileName: string): string {
-    const className = fileName
+    const className: string = fileName
       .split('/')
       .pop()
       .replace('.spec.ts', '')
@@ -90,4 +91,3 @@ export class Rule extends Rules.AbstractRule {
   }
 
 }
-

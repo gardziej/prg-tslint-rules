@@ -13,8 +13,9 @@ import { tsquery } from '@phenomnomnominal/tsquery';
 import { Replacement, RuleFailure, Rules, IOptions } from 'tslint';
 import { SourceFile } from 'typescript';
 
-const FDESCRIBE_FIT_QUERY = 'Identifier[escapedText=/^f(describe|it)$/]';
-const FAILURE_MESSAGE = (filter: string) => `Remember to remove "${filter}" once you have finished working on tests.`;
+const FDESCRIBE_FIT_QUERY: string = 'Identifier[escapedText=/^f(describe|it)$/]';
+const FAILURE_MESSAGE: (_: string) => string 
+  = (filter: string): string => `Remember to remove "${filter}" once you have finished working on tests.`;
 
 export class Rule extends Rules.AbstractRule {
 
@@ -25,13 +26,13 @@ export class Rule extends Rules.AbstractRule {
     this.ruleArguments = this.getRuleArguments();
   }
 
-  public apply(sourceFile: SourceFile): Array<RuleFailure> {
+  public apply(sourceFile: SourceFile): RuleFailure[] {
     if (this.checkForFileFilter(sourceFile)) {
       return [];
     }
 
     return tsquery(sourceFile, FDESCRIBE_FIT_QUERY).map((result: any) => {
-      const replacement = new Replacement(result.getStart(), result.getWidth(), result.escapedText.replace(/^f/, ''));
+      const replacement: Replacement = new Replacement(result.getStart(), result.getWidth(), result.escapedText.replace(/^f/, ''));
       return new RuleFailure(
         result.getSourceFile(),
         result.getStart(),
