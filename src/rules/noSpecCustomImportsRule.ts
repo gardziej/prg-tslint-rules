@@ -21,7 +21,9 @@ import {
   Node,
   ImportDeclaration,
   ImportSpecifier,
-  NamedImports
+  NamedImports,
+  Identifier,
+  CallExpression
 } from 'typescript';
 
 // tslint:disable-next-line:max-line-length
@@ -60,12 +62,12 @@ export class Rule extends Rules.AbstractRule {
     return allAllowed.includes(this.getElementName(element));
   }
 
-  public getElementName(element: Node): string {
-    if (isIdentifier(element)) {
+  public getElementName(element: any): string {
+    if (element.escapedText) {
       return element.escapedText as string;
     }
-    else if (isCallExpression(element)) {
-      return (element.expression as any).expression.escapedText as string;
+    else if (element.expression && element.expression.expression) {
+      return element.expression.expression.escapedText as string;
     }
   }
 
