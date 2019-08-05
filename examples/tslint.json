@@ -5,9 +5,12 @@
     "node_modules/prg-tslint-rules/dist/rules"
   ],
   "rules": {
-
-
     "no-spec-filters": {
+      "options": [{
+        "fileFilter": "spec"
+      }]
+    },
+    "use-spec-ng-bullet": {
       "options": [{
         "fileFilter": "spec"
       }]
