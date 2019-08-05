@@ -1,43 +1,65 @@
-// import { tsquery } from '@phenomnomnominal/tsquery';
-// import { Replacement, RuleFailure, Rules, IOptions } from 'tslint';
-// import { SourceFile } from 'typescript';
+/*
+  "rules": {
+    "use-spec-ng-bullet": {
+      "options": [{
+        "fileFilter": "spec"
+      }]
+    }
+  }
+*/
 
-// const FDESCRIBE_FIT_QUERY: string = 'CallExpression Identifier[name="beforeEach"]';
-// const FAILURE_MESSAGE: (_: string) => string = (filter: string): string => `x`;
+import { tsquery } from '@phenomnomnominal/tsquery';
+import { Replacement, RuleFailure, Rules, IOptions } from 'tslint';
+import { SourceFile, Identifier } from 'typescript';
 
-// export class Rule extends Rules.AbstractRule {
+const FDESCRIBE_FIT_QUERY = 'Identifier[escapedText="configureTestingModule"]';
+const FAILURE_MESSAGE = (filter: string) => `Don't configure Testing Module in beforeEach, use ng-bullet`;
 
-//   protected ruleArguments: any;
+export class Rule extends Rules.AbstractRule {
 
-//   constructor(options: IOptions) {
-//     super(options);
-//     this.ruleArguments = this.getRuleArguments();
-//   }
+  protected ruleArguments: any;
 
-//   public apply(sourceFile: SourceFile): RuleFailure[] {
-//     if (this.checkForFileFilter(sourceFile)) {
-//       return [];
-//     }
+  constructor(options: IOptions) {
+    super(options);
+    this.ruleArguments = this.getRuleArguments();
+  }
 
-//     return tsquery(sourceFile, FDESCRIBE_FIT_QUERY).map((result: any) => {
-//       const replacement = new Replacement(result.getStart(), result.getWidth(), result.escapedText.replace(/^f/, ''));
-//       return new RuleFailure(
-//         result.getSourceFile(),
-//         result.getStart(),
-//         result.getEnd(),
-//         FAILURE_MESSAGE(result.escapedText as string),
-//         this.ruleName,
-//         replacement);
-//     });
-//   }
+  public apply(sourceFile: SourceFile): Array<RuleFailure> {
+    if (this.checkForFileFilter(sourceFile)) {
+      return [];
+    }
 
-//   public checkForFileFilter(sourceFile: SourceFile): boolean {
-//     return (this.ruleArguments.fileFilter && !sourceFile.fileName.includes(this.ruleArguments.fileFilter));
-//   }
+    return tsquery(sourceFile, FDESCRIBE_FIT_QUERY).reduce((ruleFailures: RuleFailure[], result: any) => {
+      if (this.isParentBeforeEach(result.parent)) {
+        ruleFailures.push(new RuleFailure(
+          result.getSourceFile(),
+          result.getStart(),
+          result.getEnd(),
+          FAILURE_MESSAGE(result.escapedText as string),
+          this.ruleName));
+      }
+      return ruleFailures;
+    }, []);
+  }
 
-//   public getRuleArguments(): any {
-//     const options: IOptions = this.getOptions();
-//     const [ruleArguments]: any = options.ruleArguments;
-//     return ruleArguments;
-//   }
-// }
+  private isParentBeforeEach(element: any): boolean {
+    if (element.expression && element.expression.escapedText) {
+    }
+    if (element.expression && element.expression.escapedText && element.expression.escapedText === 'beforeEach') {
+      return true;
+    }
+    else if (element.parent) {
+      return this.isParentBeforeEach(element.parent);
+    }
+  }
+
+  public checkForFileFilter(sourceFile: SourceFile): boolean {
+    return (this.ruleArguments.fileFilter && !sourceFile.fileName.includes(this.ruleArguments.fileFilter));
+  }
+
+  public getRuleArguments(): any {
+    const options: IOptions = this.getOptions();
+    const [ruleArguments]: any = options.ruleArguments;
+    return ruleArguments;
+  }
+}
