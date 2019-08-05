@@ -8,8 +8,12 @@
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
+  "dependencies": {
     "@phenomnomnominal/tsquery": "^3.0.0",
+    "tsutils": "^3.0.0",
+    "tsutils-etc": "^1.1.0"
+  },
+  "devDependencies": {
     "@types/node": "~8.9.4",
     "tslint": "^5.18.0",
     "tslint-etc": "^1.6.0",
